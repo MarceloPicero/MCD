@@ -2,27 +2,28 @@
 
 ## Perfil
 
-**Disciplina / formación:**  
-**Qué hago hoy:**  
-**Qué me gustaría aprender en este curso:**  
+**Disciplina / formación:** Marcelo Mathias Picero Sandoval     
+**Qué hago hoy:** Docente Diseño industrial     
+**Qué me gustaría aprender en este curso:** Dinamizar la información 
 
 ## Intereses
 
-- Tema o disciplina 1
-- Tema o disciplina 2
-- Tema o disciplina 3
+- Tema o disciplina 1 Literatura
+- Tema o disciplina 2 Cine
+- Tema o disciplina 3 Fotografía 
 
 ## Una pregunta que me interesa explorar
 
 Escribe una pregunta pequeña que pueda transformarse en reglas, datos, geometría, imágenes o interacción.
 
+¿Como influye el ruido en alumnos de primer ciclo neurodivergentes?
+
 ## Algo que me inspira
 
-Agrega una imagen local en `assets/images/` y cítala con Markdown, o agrega un link a un proyecto/referencia.
+Agrega una imagen local en `assets/images/`
 
-```md
-![Descripción de la imagen](../assets/images/mi-imagen.jpg)
-```
+
+![Industrial](../assets/images/PE.jpg)
 
 ## Links
 
