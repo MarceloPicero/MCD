@@ -13,6 +13,7 @@ const valoresIniciales = {
   frecuencia: 0.4,
   rotacion: 0.3,
   aleatoriedad: 0.0,
+  distancia: 1.0,
   semilla: 42,
 };
 
@@ -128,6 +129,20 @@ function calcularRotacionModulo(x, z) {
   return direccion * parametros.rotacion;
 }
 
+// Regla C:
+// el color depende de la distancia al centro y aleatoriedad.
+function calcularColorModulo(x, z) {
+  const distancia = Math.sqrt(x * x + z * z);
+  const aleatorio = aleatoriedadConSemilla(x, z, parametros.semilla);
+  
+  // Combinamos distancia normalizada con aleatoriedad
+  const hue = (distancia * parametros.distancia * 0.5 + (aleatorio * 0.5 + 0.5)) % 1;
+  const saturation = 0.7;
+  const lightness = 0.5;
+  
+  return new THREE.Color().setHSL(hue, saturation, lightness);
+}
+
 // ======================================================
 // 05 — GENERAR CAMPO
 // ======================================================
@@ -145,8 +160,16 @@ function generarCampo() {
 
       const altura = calcularAlturaModulo(x, z);
       const rotacion = calcularRotacionModulo(x, z);
+      const color = calcularColorModulo(x, z);
 
-      const modulo = new THREE.Mesh(geometriaModulo, materialModulo);
+      // Crear material único con color para este módulo
+      const materialModuloUnico = new THREE.MeshStandardMaterial({
+        color: color,
+        roughness: 0.58,
+        metalness: 0.03,
+      });
+
+      const modulo = new THREE.Mesh(geometriaModulo, materialModuloUnico);
 
       // Escalamos solo en Y para modificar la altura.
       modulo.scale.y = altura;
@@ -201,6 +224,7 @@ const controles = {
   frecuencia: document.querySelector("#frecuencia"),
   rotacion: document.querySelector("#rotacion"),
   aleatoriedad: document.querySelector("#aleatoriedad"),
+  distancia: document.querySelector("#distancia"),
   semilla: document.querySelector("#semilla"),
 };
 
@@ -212,6 +236,7 @@ const valoresVisibles = {
   frecuencia: document.querySelector("#frecuencia-valor"),
   rotacion: document.querySelector("#rotacion-valor"),
   aleatoriedad: document.querySelector("#aleatoriedad-valor"),
+  distancia: document.querySelector("#distancia-valor"),
   semilla: document.querySelector("#semilla-valor"),
 };
 
