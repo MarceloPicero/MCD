@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Propagación de una onda</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="viewport-shell">
+      <header class="project-header">
+        <div>
+          <p class="eyebrow">EJERCICIO 01 · COMPUTACIÓN AVANZADA</p>
+          <h1>Propagación de una onda</h1>
+          <p class="subtitle">Un campo de módulos registra cómo una perturbación se expande desde un punto y pierde energía al alejarse.</p>
+        </div>
+      </header>
+      <div id="viewport"></div>
+      <div class="hint">Arrastra para orbitar · Rueda para acercar · Click derecho para desplazar</div>
+    </section>
+    <aside class="controls-panel">
+      <div class="panel-header">
+        <p class="eyebrow">REGLA GENERATIVA</p>
+        <h2>Una onda radial</h2>
+      </div>
+      <section class="control-group">
+        <h3>Origen de la perturbación</h3>
+        <label><span>Posición X</span><output id="origenX-valor">0.0</output><input id="origenX" type="range" min="-8" max="8" step="0.25" value="0" /></label>
+        <label><span>Posición Z</span><output id="origenZ-valor">0.0</output><input id="origenZ" type="range" min="-8" max="8" step="0.25" value="0" /></label>
+      </section>
+      <section class="control-group">
+        <h3>Comportamiento de la onda</h3>
+        <label><span>Frecuencia</span><output id="frecuencia-valor">1.20</output><input id="frecuencia" type="range" min="0.3" max="2.5" step="0.05" value="1.2" /></label>
+        <label><span>Amortiguación</span><output id="amortiguacion-valor">0.16</output><input id="amortiguacion" type="range" min="0.02" max="0.5" step="0.01" value="0.16" /></label>
+        <label><span>Velocidad</span><output id="velocidad-valor">1.20</output><input id="velocidad" type="range" min="0" max="3" step="0.05" value="1.2" /></label>
+      </section>
+      <section class="control-group">
+        <h3>Resolución</h3>
+        <label><span>Columnas</span><output id="columnas-valor">21</output><input id="columnas" type="range" min="9" max="31" step="1" value="21" /></label>
+        <label><span>Filas</span><output id="filas-valor">21</output><input id="filas" type="range" min="9" max="31" step="1" value="21" /></label>
+      </section>
+      <div class="actions"><button id="pausar">Pausar</button><button id="restablecer" class="secondary">Restablecer</button></div>
+      <footer class="panel-footer"><p>Pregunta guía:<br /><strong>¿Cómo cambia un campo cuando una perturbación se propaga, se repite y pierde energía?</strong></p></footer>
+    </aside>
+  </main>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/" } }
+  </script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
