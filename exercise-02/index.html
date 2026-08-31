@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ejercicio 02 · Monitor Sísmico 3D</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="viewport-shell">
+      <header class="project-header">
+        <p class="eyebrow">COMPUTACIÓN AVANZADA · MCD UAI</p>
+        <h1>Actividad Sísmica Global</h1>
+        <p class="subtitle">Núcleos de energía y ondas de choque tectónicas en las últimas 24 horas.</p>
+      </header>
+
+      <div id="viewport"></div>
+
+      <!-- Leyenda Cromática y Temporal -->
+      <div class="legend">
+        <span class="legend-title">Vigencia temporal del sismo</span>
+        <div class="gradient-bar"></div>
+        <div class="legend-labels">
+          <span>&lt; 2h (Palpitante)</span>
+          <span>12h</span>
+          <span>&gt; 24h (Fijo)</span>
+        </div>
+      </div>
+
+      <div class="hint">Arrastra para orbitar · Rueda para zoom · Clic en un núcleo para inspeccionarlo</div>
+    </section>
+
+    <aside class="controls-panel">
+      <div class="panel-header">
+        <p class="eyebrow">FUENTE + REPRESENTACIÓN</p>
+        <h2>Sistema vivo</h2>
+      </div>
+
+      <section class="status-card">
+        <div class="status-row">
+          <span>Fuente</span>
+          <strong id="fuente-label">USGS Earthquakes</strong>
+        </div>
+        <div class="status-row">
+          <span>Estado</span>
+          <strong id="estado-label"><i class="status-dot"></i> conectando</strong>
+        </div>
+        <div class="status-row">
+          <span>Última consulta</span>
+          <strong id="actualizacion-label">—</strong>
+        </div>
+        <div class="status-row">
+          <span>Próxima consulta</span>
+          <strong id="cuenta-regresiva">—</strong>
+        </div>
+      </section>
+
+      <section class="control-group">
+        <h3>Parámetros</h3>
+
+        <label>
+          <span>Magnitud mínima</span>
+          <output id="mag-min-valor">2.5</output>
+          <input id="mag-min" type="range" min="1.0" max="6.0" step="0.5" value="2.5" />
+        </label>
+
+        <label>
+          <span>Escala de profundidad</span>
+          <output id="escala-prof-valor">0.08</output>
+          <input id="escala-prof" type="range" min="0.02" max="0.2" step="0.01" value="0.08" />
+        </label>
+      </section>
+
+      <section class="mapping">
+        <h3>Reglas de representación</h3>
+        <div class="map-row"><b>latitud / longitud</b><span>→</span><em>posición X/Z</em></div>
+        <div class="map-row"><b>magnitud</b><span>→</span><em>volumen núcleo y onda</em></div>
+        <div class="map-row"><b>profundidad (km)</b><span>→</span><em>altura de suspensión</em></div>
+        <div class="map-row"><b>tiempo transcurrido</b><span>→</span><em>color y frecuencia de latido</em></div>
+      </section>
+
+      <section class="inspector">
+        <h3>Evento seleccionado</h3>
+        <p id="sismo-lugar">Haz clic sobre un núcleo de energía.</p>
+        <div class="metric-grid">
+          <div><span>Magnitud</span><strong id="m-mag">—</strong></div>
+          <div><span>Profundidad</span><strong id="m-prof">—</strong></div>
+          <div><span>Hora</span><strong id="m-hora">—</strong></div>
+          <div><span>Tsunami Alert</span><strong id="m-tsunami">—</strong></div>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="actualizar">Actualizar ahora</button>
+        <button id="pausar" class="secondary">Pausar auto</button>
+      </div>
+    </aside>
+  </main>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,126 +1,76 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Campo Generativo 01</title>
-  <link rel="stylesheet" href="./style.css" />
-</head>
-<body>
-  <main class="app-shell">
-    <section class="viewport-shell">
-      <header class="project-header">
-        <div>
-          <p class="eyebrow">COMPUTACIÓN AVANZADA · MCD UAI</p>
-          <h1>Campo Generativo 01</h1>
-          <p class="subtitle">
-            Un sistema tridimensional simple para explorar reglas, parámetros e iteración.
-          </p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitor sísmico global</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="viewport-shell" aria-label="Visualización 3D de actividad sísmica">
+        <div id="viewport" aria-label="Globo terráqueo interactivo"></div>
+        <header class="project-header">
+          <p class="eyebrow">USGS EARTHQUAKES · MONITOREO EN VIVO</p>
+          <h1>Actividad Sísmica Global</h1>
+          <p class="subtitle">Explora los eventos registrados en las últimas 24 horas sobre un mapa tridimensional del planeta.</p>
+        </header>
+        <div class="legend" aria-label="Leyenda de eventos">
+          <span><i class="dot recent"></i>Reciente &lt; 2 h</span>
+          <span><i class="dot deep"></i>Profundo &gt; 100 km</span>
         </div>
-      </header>
-
-      <div id="viewport"></div>
-
-      <div class="hint">
-        Arrastra para orbitar · Rueda para acercar · Click derecho para desplazar
-      </div>
-    </section>
-
-    <aside class="controls-panel">
-      <div class="panel-header">
-        <p class="eyebrow">PARÁMETROS</p>
-        <h2>Espacio de diseño</h2>
-      </div>
-
-      <section class="control-group">
-        <h3>Sistema</h3>
-
-        <label>
-          <span>Columnas</span>
-          <output id="columnas-valor">15</output>
-          <input id="columnas" type="range" min="5" max="30" step="1" value="15" />
-        </label>
-
-        <label>
-          <span>Filas</span>
-          <output id="filas-valor">15</output>
-          <input id="filas" type="range" min="5" max="30" step="1" value="15" />
-        </label>
-
-        <label>
-          <span>Separación</span>
-          <output id="separacion-valor">1.20</output>
-          <input id="separacion" type="range" min="0.7" max="2.0" step="0.05" value="1.2" />
-        </label>
+        <p class="hint">Arrastra para orbitar · Rueda para acercar · Haz clic en un evento para inspeccionarlo</p>
       </section>
 
-      <section class="control-group">
-        <h3>Comportamiento</h3>
-
-        <label>
-          <span>Amplitud</span>
-          <output id="amplitud-valor">3.00</output>
-          <input id="amplitud" type="range" min="0" max="6" step="0.1" value="3" />
-        </label>
-
-        <label>
-          <span>Frecuencia</span>
-          <output id="frecuencia-valor">0.40</output>
-          <input id="frecuencia" type="range" min="0.05" max="1.2" step="0.05" value="0.4" />
-        </label>
-
-        <label>
-          <span>Rotación</span>
-          <output id="rotacion-valor">0.30</output>
-          <input id="rotacion" type="range" min="0" max="1.2" step="0.05" value="0.3" />
-        </label>
-
-        <label>
-          <span>Distancia (Color)</span>
-          <output id="distancia-valor">1.00</output>
-          <input id="distancia" type="range" min="0" max="3" step="0.1" value="1" />
-        </label>
-      </section>
-
-      <section class="control-group">
-        <h3>Variación</h3>
-
-        <label>
-          <span>Aleatoriedad</span>
-          <output id="aleatoriedad-valor">0.00</output>
-          <input id="aleatoriedad" type="range" min="0" max="1.5" step="0.05" value="0" />
-        </label>
-
-        <label>
-          <span>Semilla</span>
-          <output id="semilla-valor">42</output>
-          <input id="semilla" type="range" min="1" max="100" step="1" value="42" />
-        </label>
-      </section>
-
-      <div class="actions">
-        <button id="regenerar">Regenerar</button>
-        <button id="restablecer" class="secondary">Restablecer</button>
-      </div>
-
-      <footer class="panel-footer">
-        <p>
-          Pregunta guía:<br />
-          <strong>¿Qué cambia cuando diseñamos las reglas y no una forma única?</strong>
-        </p>
-      </footer>
-    </aside>
-  </main>
-
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      <aside class="controls-panel" aria-label="Panel de control">
+        <header class="panel-header"><p class="eyebrow">USGS EARTHQUAKES</p><h2>Actividad Sísmica Global</h2></header>
+        <section class="status-card" aria-labelledby="estado-title">
+          <h3 id="estado-title">Estado de datos</h3>
+          <dl>
+            <div><dt>Fuente</dt><dd id="fuente-label">USGS Earthquakes Feed</dd></div>
+            <div><dt>Conexión</dt><dd><span class="connection-dot"></span>Conectado</dd></div>
+            <div><dt>Última actualización</dt><dd id="last-update">—</dd></div>
+            <div><dt>Próxima consulta</dt><dd id="cuenta-regresiva">—</dd></div>
+          </dl>
+        </section>
+        <section class="control-group" aria-labelledby="filtros-title">
+          <h3 id="filtros-title">Filtros</h3>
+          <label for="mag-min"><span>Magnitud mínima</span><output id="mag-min-valor">2.5</output></label>
+          <input id="mag-min" type="range" min="1.0" max="6.0" step="0.5" value="2.5" />
+          <label for="escala-prof"><span>Escala de profundidad</span><output id="escala-prof-valor">0.08</output></label>
+          <input id="escala-prof" type="range" min="0.02" max="0.2" step="0.01" value="0.08" />
+        </section>
+        <section class="mapping" aria-labelledby="mapping-title">
+          <h3 id="mapping-title">Mapeo visual</h3>
+          <ul>
+            <li><span>Latitud / longitud</span><b>posición X/Z</b></li>
+            <li><span>Magnitud</span><b>radio / área</b></li>
+            <li><span>Profundidad (km)</span><b>altura columnar</b></li>
+            <li><span>Tiempo transcurrido</span><b>color y brillo</b></li>
+          </ul>
+        </section>
+        <section class="inspector" aria-labelledby="inspector-title">
+          <h3 id="inspector-title">Inspector de evento</h3>
+          <p class="empty-state">Selecciona un sismo en el globo para ver sus detalles.</p>
+          <dl class="event-details" hidden>
+            <div><dt>Lugar</dt><dd id="sismo-lugar">—</dd></div>
+            <div><dt>Magnitud</dt><dd id="m-mag">—</dd></div>
+            <div><dt>Profundidad</dt><dd id="m-prof">—</dd></div>
+            <div><dt>Hora</dt><dd id="m-hora">—</dd></div>
+            <div><dt>Alerta de tsunami</dt><dd id="m-tsunami">—</dd></div>
+          </dl>
+        </section>
+        <div class="actions"><button id="refresh-now" type="button">Actualizar ahora</button><button id="toggle-auto" class="secondary" type="button">Pausar auto</button></div>
+      </aside>
+    </main>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+        }
       }
-    }
-  </script>
-
-  <script type="module" src="./main.js"></script>
-</body>
+    </script>
+    <script type="module" src="./main.js"></script>
+  </body>
 </html>
