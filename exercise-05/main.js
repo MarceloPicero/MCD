@@ -49,7 +49,6 @@ let tiempoActualMinutos = 8 * 60;
 let indiceCronograma = 0;
 const particlesPerCategory = 1000;
 
-// Variables para captura de sensores en tiempo real
 let audioAnalyser = null;
 let audioContext = null;
 let videoElement = null;
@@ -98,11 +97,9 @@ async function init() {
   }
 }
 
-// Inicializar hardware de Microfono y Camara
 async function configurarSensores() {
   btnSensores.addEventListener('click', async () => {
     try {
-      // 1. Activar Micrófono
       const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const source = audioContext.createMediaStreamSource(audioStream);
@@ -110,7 +107,6 @@ async function configurarSensores() {
       audioAnalyser.fftSize = 256;
       source.connect(audioAnalyser);
 
-      // 2. Activar Cámara Web
       const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
       videoElement = document.createElement('video');
       videoElement.srcObject = videoStream;
@@ -137,7 +133,6 @@ async function configurarSensores() {
 function obtenerDatosSensoresEnVivo() {
   if (!sensoresActivos) return null;
 
-  // Medir Audio (Micrófono) -> Decibeles simulados (30 a 90 dB)
   let dbValue = Number(sliderSonido.value);
   if (audioAnalyser) {
     const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
@@ -145,10 +140,9 @@ function obtenerDatosSensoresEnVivo() {
     let sum = 0;
     for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
     let avg = sum / dataArray.length;
-    dbValue = 30 + (avg / 255) * 60; // Mapeo gradual
+    dbValue = 30 + (avg / 255) * 60;
   }
 
-  // Medir Luz (Cámara) -> Lux simulados (100 a 1000 Lux)
   let luxValue = Number(sliderLuz.value);
   if (videoElement && videoCtx && videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
     videoCtx.drawImage(videoElement, 0, 0, 64, 64);
@@ -158,11 +152,11 @@ function obtenerDatosSensoresEnVivo() {
       const r = frame.data[i];
       const g = frame.data[i+1];
       const b = frame.data[i+2];
-      const lum = 0.299 * r + 0.587 * g + 0.114 * b; // Luminancia perceptual
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
       colorSum += lum;
     }
     const avgLum = colorSum / (frame.data.length / 4);
-    luxValue = 100 + (avgLum / 255) * 900; // Mapeo gradual
+    luxValue = 100 + (avgLum / 255) * 900;
   }
 
   return { sonido: dbValue, luz: luxValue };
@@ -192,7 +186,7 @@ function crearGrupoParticulas(colorHex) {
     basePos[indice + 2] = (Math.random() - 0.5) * volumenAula.profundidad;
 
     positions[indice] = basePos[indice];
-    positions[indice + 1] = basePos[indice + 1];
+    positions[indice + 1] = 999999; // Inician ocultas
     positions[indice + 2] = basePos[indice + 2];
 
     colors[indice] = color.r;
@@ -263,6 +257,9 @@ function moverGrupo(sys, base, slider, time, tipoFactor) {
   const max = Number(slider.max);
   const min = Number(slider.min || 0);
   const porcentajeActivo = (max - min) > 0 ? (value - min) / (max - min) : 0;
+  
+  // Cantidad de partículas visibles según la intensidad actual (aparecen/desaparecen)
+  const limiteActivo = Math.floor(particlesPerCategory * porcentajeActivo);
 
   let velocidad = time * (0.5 + porcentajeActivo * 4.0);
   let amplitud = 0.05 + (porcentajeActivo * 2.5);
@@ -276,17 +273,26 @@ function moverGrupo(sys, base, slider, time, tipoFactor) {
 
   for (let i = 0; i < particlesPerCategory; i++) {
     const indice = i * 3;
-    const noiseX = tipoFactor === 'tactil' ? Math.sin(time * 50 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
-    const noiseY = tipoFactor === 'tactil' ? Math.cos(time * 50 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
-    const noiseZ = tipoFactor === 'tactil' ? Math.sin(time * 40 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
 
-    const offsetX = Math.sin(velocidad + i * 1.1) * amplitud + noiseX;
-    const offsetY = Math.cos(velocidad + i * 1.3) * amplitud + noiseY;
-    const offsetZ = Math.sin(velocidad + i * 1.5) * amplitud + noiseZ;
+    if (i < limiteActivo) {
+      // Partícula visible y activa (Aparece y se agita según intensidad)
+      const noiseX = tipoFactor === 'tactil' ? Math.sin(time * 50 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
+      const noiseY = tipoFactor === 'tactil' ? Math.cos(time * 50 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
+      const noiseZ = tipoFactor === 'tactil' ? Math.sin(time * 40 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
 
-    positions[indice] = (base[indice] * expansion) + offsetX;
-    positions[indice + 1] = (base[indice + 1] * expansion) + offsetY;
-    positions[indice + 2] = (base[indice + 2] * expansion) + offsetZ;
+      const offsetX = Math.sin(velocidad + i * 1.1) * amplitud + noiseX;
+      const offsetY = Math.cos(velocidad + i * 1.3) * amplitud + noiseY;
+      const offsetZ = Math.sin(velocidad + i * 1.5) * amplitud + noiseZ;
+
+      positions[indice] = (base[indice] * expansion) + offsetX;
+      positions[indice + 1] = (base[indice + 1] * expansion) + offsetY;
+      positions[indice + 2] = (base[indice + 2] * expansion) + offsetZ;
+    } else {
+      // Partícula oculta fuera de pantalla (Desaparece al bajar la intensidad)
+      positions[indice] = base[indice];
+      positions[indice + 1] = 999999;
+      positions[indice + 2] = base[indice + 2];
+    }
   }
   sys.geometry.attributes.position.needsUpdate = true;
 }
@@ -294,11 +300,9 @@ function moverGrupo(sys, base, slider, time, tipoFactor) {
 function updateParticles() {
   if (!sysSonido) return;
 
-  // Si los sensores en vivo están activos, capturamos y actualizamos los valores de forma gradual
   if (sensoresActivos) {
     const datosVivo = obtenerDatosSensoresEnVivo();
     if (datosVivo) {
-      // Interpolación suave gradual (LERP) para evitar saltos bruscos en las partículas
       sliderSonido.value = THREE.MathUtils.lerp(Number(sliderSonido.value), datosVivo.sonido, 0.1);
       sliderLuz.value = THREE.MathUtils.lerp(Number(sliderLuz.value), datosVivo.luz, 0.1);
     }
@@ -366,6 +370,8 @@ function actualizarSimulacion() {
   sliderSonido.value = THREE.MathUtils.lerp(Number(sliderSonido.value), targetSonido, 0.05);
   sliderLuz.value = THREE.MathUtils.lerp(Number(sliderLuz.value), targetLuz, 0.05);
   sliderTactil.value = THREE.MathUtils.lerp(Number(sliderTactil.value), targetTactil, 0.05);
+
+  updateParticles();
 }
 
 function animate() {
