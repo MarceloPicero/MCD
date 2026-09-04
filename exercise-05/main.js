@@ -49,8 +49,11 @@ let tiempoActualMinutos = 8 * 60;
 let indiceCronograma = 0;
 const particlesPerCategory = 1000;
 
+// Referencias de hardware para poder detenerlas
 let audioAnalyser = null;
 let audioContext = null;
+let activeAudioStream = null;
+let activeVideoStream = null;
 let videoElement = null;
 let videoCanvas = null;
 let videoCtx = null;
@@ -89,7 +92,7 @@ async function init() {
     crearParticulas();
     configurarSliders();
     configurarSimulacion();
-    configurarSensores();
+    configurarSensoresToggle();
     formatearHora(tiempoActualMinutos);
     animate();
   } catch (error) {
@@ -97,35 +100,67 @@ async function init() {
   }
 }
 
-async function configurarSensores() {
+// Configuración del Botón Interruptor (Activar / Desactivar Sensores)
+function configurarSensoresToggle() {
   btnSensores.addEventListener('click', async () => {
-    try {
-      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const source = audioContext.createMediaStreamSource(audioStream);
-      audioAnalyser = audioContext.createAnalyser();
-      audioAnalyser.fftSize = 256;
-      source.connect(audioAnalyser);
+    if (!sensoresActivos) {
+      // --- ACTIVAR SENSORES ---
+      try {
+        activeAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(activeAudioStream);
+        audioAnalyser = audioContext.createAnalyser();
+        audioAnalyser.fftSize = 256;
+        source.connect(audioAnalyser);
 
-      const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-      videoElement = document.createElement('video');
-      videoElement.srcObject = videoStream;
-      videoElement.autoplay = true;
-      videoElement.playsInline = true;
-      await videoElement.play();
+        activeVideoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoElement = document.createElement('video');
+        videoElement.srcObject = activeVideoStream;
+        videoElement.autoplay = true;
+        videoElement.playsInline = true;
+        await videoElement.play();
 
-      videoCanvas = document.createElement('canvas');
-      videoCanvas.width = 64;
-      videoCanvas.height = 64;
-      videoCtx = videoCanvas.getContext('2d');
+        videoCanvas = document.createElement('canvas');
+        videoCanvas.width = 64;
+        videoCanvas.height = 64;
+        videoCtx = videoCanvas.getContext('2d');
 
-      sensoresActivos = true;
-      btnSensores.textContent = "SENSORES EN VIVO ACTIVOS";
-      btnSensores.style.background = "#2d8cff";
-      relojActividad.textContent = "Monitoreando Entorno Físico (Mic/Cam)";
-    } catch (e) {
-      alert("No se pudieron activar los permisos de cámara o micrófono.");
-      console.error(e);
+        sensoresActivos = true;
+        btnSensores.textContent = "Desactivar Sensores (Mic/Cam)";
+        btnSensores.style.background = "#ff3b4f"; // Rojo para indicar estado activo de hardware
+        relojActividad.textContent = "Monitoreando Entorno Físico (Mic/Cam)";
+      } catch (e) {
+        alert("No se pudieron activar los permisos de cámara o micrófono.");
+        console.error(e);
+      }
+    } else {
+      // --- DESACTIVAR SENSORES Y LIBERAR HARDWARE ---
+      if (activeAudioStream) {
+        activeAudioStream.getTracks().forEach(track => track.stop());
+        activeAudioStream = null;
+      }
+      if (activeVideoStream) {
+        activeVideoStream.getTracks().forEach(track => track.stop());
+        activeVideoStream = null;
+      }
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close();
+        audioContext = null;
+      }
+      if (videoElement) {
+        videoElement.pause();
+        videoElement.srcObject = null;
+        videoElement = null;
+      }
+
+      sensoresActivos = false;
+      audioAnalyser = null;
+      videoCanvas = null;
+      videoCtx = null;
+
+      btnSensores.textContent = "Activar Sensores (Mic/Cam)";
+      btnSensores.style.background = ""; // Restablecer color original
+      relojActividad.textContent = "Modo Manual / Simulación";
     }
   });
 }
@@ -258,7 +293,6 @@ function moverGrupo(sys, base, slider, time, tipoFactor) {
   const min = Number(slider.min || 0);
   const porcentajeActivo = (max - min) > 0 ? (value - min) / (max - min) : 0;
   
-  // Cantidad de partículas visibles según la intensidad actual (aparecen/desaparecen)
   const limiteActivo = Math.floor(particlesPerCategory * porcentajeActivo);
 
   let velocidad = time * (0.5 + porcentajeActivo * 4.0);
@@ -275,7 +309,6 @@ function moverGrupo(sys, base, slider, time, tipoFactor) {
     const indice = i * 3;
 
     if (i < limiteActivo) {
-      // Partícula visible y activa (Aparece y se agita según intensidad)
       const noiseX = tipoFactor === 'tactil' ? Math.sin(time * 50 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
       const noiseY = tipoFactor === 'tactil' ? Math.cos(time * 50 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
       const noiseZ = tipoFactor === 'tactil' ? Math.sin(time * 40 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
@@ -288,7 +321,6 @@ function moverGrupo(sys, base, slider, time, tipoFactor) {
       positions[indice + 1] = (base[indice + 1] * expansion) + offsetY;
       positions[indice + 2] = (base[indice + 2] * expansion) + offsetZ;
     } else {
-      // Partícula oculta fuera de pantalla (Desaparece al bajar la intensidad)
       positions[indice] = base[indice];
       positions[indice + 1] = 999999;
       positions[indice + 2] = base[indice + 2];
