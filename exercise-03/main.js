@@ -5,6 +5,9 @@ const container = document.getElementById('canvas-container');
 const sliderSonido = document.getElementById('slider-sonido');
 const sliderLuz = document.getElementById('slider-luz');
 const sliderTactil = document.getElementById('slider-tactil');
+const relojHora = document.getElementById('reloj-hora');
+const relojActividad = document.getElementById('reloj-actividad');
+const btnPlay = document.getElementById('btn-play-simulacion');
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -26,6 +29,10 @@ controls.enableDamping = true;
 let geometry;
 let basePositions;
 let categories;
+let cronograma = [];
+let simulacionActiva = false;
+let tiempoActualMinutos = 8 * 60;
+let indiceCronograma = 0;
 const particlesPerCategory = 1000;
 
 async function init() {
@@ -37,6 +44,7 @@ async function init() {
     }
 
     const datos = await response.json();
+    cronograma = datos.cronograma_curricular || [];
     const factores = datos.factores_desregulacion;
     const impactoSonido = factores.sonido.impacto_porcentaje;
     const impactoLuz = factores.luz.impacto_porcentaje;
@@ -54,6 +62,9 @@ async function init() {
 
     crearParticulas();
     configurarSliders();
+    configurarSimulacion();
+    formatearHora(tiempoActualMinutos);
+    actualizarActividadActual();
     animate();
   } catch (error) {
     console.error('Error al inicializar la visualizacion:', error);
@@ -153,8 +164,65 @@ function configurarSliders() {
   });
 }
 
+function configurarSimulacion() {
+  btnPlay.addEventListener('click', () => {
+    simulacionActiva = !simulacionActiva;
+    btnPlay.textContent = simulacionActiva
+      ? 'PAUSAR SIMULACI\u00d3N'
+      : 'INICIAR SIMULACI\u00d3N';
+  });
+}
+
+function formatearHora(minutosTotales) {
+  const horas = Math.floor(minutosTotales / 60);
+  const minutos = Math.floor(minutosTotales % 60);
+  const horaFormateada = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+
+  relojHora.textContent = horaFormateada;
+  return horaFormateada;
+}
+
+function actualizarActividadActual() {
+  if (cronograma.length === 0) return;
+
+  const indiceEncontrado = cronograma.reduce((indiceActual, entrada, indice) => {
+    const [horas, minutos] = entrada.hora.split(':').map(Number);
+    return horas * 60 + minutos <= tiempoActualMinutos ? indice : indiceActual;
+  }, 0);
+
+  indiceCronograma = indiceEncontrado;
+  relojActividad.textContent = cronograma[indiceCronograma].actividad;
+}
+
+function actualizarSimulacion() {
+  if (!simulacionActiva || cronograma.length === 0) return;
+
+  tiempoActualMinutos += 0.5;
+
+  if (tiempoActualMinutos > 13 * 60) {
+    tiempoActualMinutos = 8 * 60;
+  }
+
+  formatearHora(tiempoActualMinutos);
+  actualizarActividadActual();
+
+  const niveles = cronograma[indiceCronograma].niveles;
+  sliderSonido.value = THREE.MathUtils.lerp(
+    Number(sliderSonido.value),
+    niveles.sonido,
+    0.02,
+  );
+  sliderLuz.value = THREE.MathUtils.lerp(
+    Number(sliderLuz.value), niveles.luz, 0.02,
+  );
+  sliderTactil.value = THREE.MathUtils.lerp(
+    Number(sliderTactil.value), niveles.tactil, 0.02,
+  );
+}
+
 function animate() {
   requestAnimationFrame(animate);
+  actualizarSimulacion();
   updateParticles();
   controls.update();
   renderer.render(scene, camera);
