@@ -1,5 +1,6 @@
 ﻿import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const container = document.getElementById('canvas-container');
 const sliderSonido = document.getElementById('slider-sonido');
@@ -36,26 +37,20 @@ let tiempoActualMinutos = 8 * 60;
 let indiceCronograma = 0;
 const particlesPerCategory = 1000;
 
-// --- PROYECCION DEL AULA ---
-const volumenAula = { ancho: 14, alto: 8, profundidad: 8 };
+const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.7);
+scene.add(luzAmbiente);
+const luzDirecta = new THREE.DirectionalLight(0xffffff, 0.8);
+luzDirecta.position.set(10, 20, 15);
+scene.add(luzDirecta);
 
-// Crear lineas (Wireframe) para los limites de la sala
-const geometriaCaja = new THREE.BoxGeometry(
-  volumenAula.ancho,
-  volumenAula.alto,
-  volumenAula.profundidad,
-);
+const volumenAula = { ancho: 14, alto: 8, profundidad: 8 };
+const geometriaCaja = new THREE.BoxGeometry(volumenAula.ancho, volumenAula.alto, volumenAula.profundidad);
 const bordesCaja = new THREE.EdgesGeometry(geometriaCaja);
-const materialBordes = new THREE.LineBasicMaterial({
-  color: 0x333333,
-  transparent: true,
-  opacity: 0.5,
-});
+const materialBordes = new THREE.LineBasicMaterial({ color: 0x444444, transparent: true, opacity: 0.3 });
 const salaWireframe = new THREE.LineSegments(bordesCaja, materialBordes);
 scene.add(salaWireframe);
 
-// Crear una grilla tenue para el piso
-const grillaSuelo = new THREE.GridHelper(volumenAula.ancho, 14, 0x444444, 0x222222);
+const grillaSuelo = new THREE.GridHelper(volumenAula.ancho, 14, 0x555555, 0x222222);
 grillaSuelo.position.y = -(volumenAula.alto / 2);
 scene.add(grillaSuelo);
 
@@ -83,6 +78,15 @@ async function init() {
     sliderSonido.value = impactoSonido;
     sliderLuz.value = impactoLuz;
     sliderTactil.value = impactoTactil;
+
+    const loader = new GLTFLoader();
+    loader.load('./assets/sala.glb', (gltf) => {
+      const modeloSala = gltf.scene;
+      modeloSala.position.y = -(volumenAula.alto / 2);
+      scene.add(modeloSala);
+    }, undefined, (error) => {
+      console.error('Error al cargar el modelo 3D de la sala:', error);
+    });
 
     crearParticulas();
     configurarSliders();
