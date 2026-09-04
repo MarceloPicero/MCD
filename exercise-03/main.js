@@ -138,12 +138,14 @@ function crearParticulas() {
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
   const material = new THREE.PointsMaterial({
-    size: 0.30, // Tamaño aumentado para destacar en la nueva escala
+    size: 0.45,
     vertexColors: true,
     transparent: true,
     opacity: 0.88,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
+    map: crearTexturaCirculo(),
+    alphaTest: 0.5,
   });
 
   scene.add(new THREE.Points(geometry, material));
@@ -278,3 +280,17 @@ window.addEventListener('resize', () => {
 });
 
 init();
+
+function crearTexturaCirculo() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const context = canvas.getContext('2d');
+
+  context.beginPath();
+  context.arc(32, 32, 28, 0, Math.PI * 2, false);
+  context.fillStyle = '#ffffff';
+  context.fill();
+
+  return new THREE.CanvasTexture(canvas);
+}
