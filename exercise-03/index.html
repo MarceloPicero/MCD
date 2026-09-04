@@ -9,14 +9,43 @@
       {
         "imports": {
           "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
-          "lil-gui": "https://cdn.jsdelivr.net/npm/lil-gui@0.19/+esm"
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
         }
       }
     </script>
   </head>
   <body>
     <div id="canvas-container"></div>
+
+    <aside class="controls-panel">
+      <section class="panel-section">
+        <h2>PAR&Aacute;METROS DE SOBRECARGA</h2>
+
+        <div class="control-block">
+          <label for="slider-sonido">Sonido</label>
+          <input id="slider-sonido" type="range" min="0" max="100" value="0" />
+        </div>
+
+        <div class="control-block">
+          <label for="slider-luz">Luz</label>
+          <input id="slider-luz" type="range" min="0" max="100" value="0" />
+        </div>
+
+        <div class="control-block">
+          <label for="slider-tactil">T&aacute;ctil</label>
+          <input id="slider-tactil" type="range" min="0" max="100" value="0" />
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <h2>REGLAS DE REPRESENTACI&Oacute;N</h2>
+        <ul class="color-legend">
+          <li>Sonido &rarr; Azul</li>
+          <li>Luz &rarr; Amarillo</li>
+          <li>T&aacute;ctil &rarr; Rojo</li>
+        </ul>
+      </section>
+    </aside>
 
     <script type="module" src="./main.js"></script>
   </body>
