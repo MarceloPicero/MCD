@@ -138,7 +138,7 @@ function crearParticulas() {
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
   const material = new THREE.PointsMaterial({
-    size: 0.15, // Aumentado ligeramente para mejor lectura espacial
+    size: 0.45, // Tamaño aumentado para destacar en la nueva escala
     vertexColors: true,
     transparent: true,
     opacity: 0.88,
