@@ -16,10 +16,36 @@
   </head>
   <body>
     <div id="quadrant-labels">
-      <div class="q-label q-tl">SOBRECARGA SONORA (dB)</div>
-      <div class="q-label q-tr">SOBRECARGA LUM&Iacute;NICA (Lux)</div>
-      <div class="q-label q-bl">VIBRACI&Oacute;N T&Aacute;CTIL (mm/s&sup2;)</div>
-      <div class="q-label q-br">ENTORNO COMBINADO</div>
+      <!-- Cuadrante 1: Sonido -->
+      <div class="q-label q-tl">
+        <span>SOBRECARGA SONORA</span>
+        <div class="quadrant-metric">Actual: <span id="m-sonido">40</span> dB</div>
+        <div class="limit-bar"><div id="bar-sonido" class="bar-fill blue"></div></div>
+        <div class="limit-text">Umbral Neurodivergente: 65 dB | Límite: 85 dB</div>
+      </div>
+
+      <!-- Cuadrante 2: Luz -->
+      <div class="q-label q-tr">
+        <span>SOBRECARGA LUM&Iacute;NICA</span>
+        <div class="quadrant-metric">Actual: <span id="m-luz">300</span> Lux</div>
+        <div class="limit-bar"><div id="bar-luz" class="bar-fill yellow"></div></div>
+        <div class="limit-text">Umbral Neurodivergente: 500 Lux | Límite: 800 Lux</div>
+      </div>
+
+      <!-- Cuadrante 3: Táctil -->
+      <div class="q-label q-bl">
+        <span>VIBRACI&Oacute;N T&Aacute;CTIL</span>
+        <div class="quadrant-metric">Actual: <span id="m-tactil">0.0</span> mm/s&sup2;</div>
+        <div class="limit-bar"><div id="bar-tactil" class="bar-fill red"></div></div>
+        <div class="limit-text">Umbral Neurodivergente: 4.0 | Límite: 8.0</div>
+      </div>
+
+      <!-- Cuadrante 4: Combinado -->
+      <div class="q-label q-br">
+        <span>ENTORNO COMBINADO</span>
+        <div class="quadrant-metric status-safe" id="status-text">ESTADO: CONFORT</div>
+        <div class="limit-text">Monitoreo Multidimensional de Estrés</div>
+      </div>
     </div>
 
     <div id="canvas-container"></div>

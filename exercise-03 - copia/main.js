@@ -11,6 +11,15 @@ const valSonido = document.getElementById('val-sonido');
 const valLuz = document.getElementById('val-luz');
 const valTactil = document.getElementById('val-tactil');
 
+// HUD Metricas en Cuadrantes
+const mSonido = document.getElementById('m-sonido');
+const mLuz = document.getElementById('m-luz');
+const mTactil = document.getElementById('m-tactil');
+const barSonido = document.getElementById('bar-sonido');
+const barLuz = document.getElementById('bar-luz');
+const barTactil = document.getElementById('bar-tactil');
+const statusText = document.getElementById('status-text');
+
 const relojHora = document.getElementById('reloj-hora');
 const relojActividad = document.getElementById('reloj-actividad');
 const btnPlay = document.getElementById('btn-play-simulacion');
@@ -30,7 +39,6 @@ container.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-// Sistemas de partículas independientes para los cuadrantes
 let sysSonido, sysLuz, sysTactil;
 let baseSonido, baseLuz, baseTactil;
 
@@ -40,7 +48,6 @@ let tiempoActualMinutos = 8 * 60;
 let indiceCronograma = 0;
 const particlesPerCategory = 1000;
 
-// Iluminación para el modelo 3D
 const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(luzAmbiente);
 const luzDirecta = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -52,34 +59,21 @@ const volumenAula = { ancho: 14, alto: 8, profundidad: 8 };
 async function init() {
   try {
     const response = await fetch('./data/datos_sensoriales.json');
-
-    if (!response.ok) {
-      throw new Error(`No se pudieron cargar los datos: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`No se pudieron cargar los datos: ${response.status}`);
 
     const datos = await response.json();
     cronograma = datos.cronograma_curricular || [];
     const factores = datos.factores_desregulacion;
 
-    // Configurar rangos y máximos físicos
-    sliderSonido.max = 90; // dB
-    sliderSonido.min = 30;
-    sliderSonido.value = factores.sonido.impacto_porcentaje ? Math.round(30 + (factores.sonido.impacto_porcentaje / 100) * 60) : 65;
+    sliderSonido.max = 90; sliderSonido.min = 30;
+    sliderSonido.value = 40;
+    sliderLuz.max = 1000; sliderLuz.min = 100;
+    sliderLuz.value = 300;
+    sliderTactil.max = 10; sliderTactil.min = 0;
+    sliderTactil.value = 0.0;
 
-    sliderLuz.max = 1000; // Lux
-    sliderLuz.min = 100;
-    sliderLuz.value = 450;
+    actualizarMetricasHUD();
 
-    sliderTactil.max = 10; // mm/s²
-    sliderTactil.min = 0;
-    sliderTactil.value = 2.5;
-
-    // Actualizar displays iniciales
-    valSonido.textContent = sliderSonido.value;
-    valLuz.textContent = sliderLuz.value;
-    valTactil.textContent = sliderTactil.value;
-
-    // Cargar Sala 3D
     const loader = new GLTFLoader();
     loader.load('./assets/sala.glb', function (gltf) {
       const modeloSala = gltf.scene;
@@ -87,8 +81,6 @@ async function init() {
       modeloSala.rotation.y = Math.PI / 2;
       modeloSala.scale.set(6, 6, 6);
       scene.add(modeloSala);
-    }, undefined, function (error) {
-      console.error('Error al cargar el modelo 3D de la sala:', error);
     });
 
     crearParticulas();
@@ -98,26 +90,21 @@ async function init() {
     actualizarActividadActual();
     animate();
   } catch (error) {
-    console.error('Error al inicializar la visualizacion:', error);
+    console.error('Error al inicializar:', error);
   }
 }
 
-// Función para crear textura circular suave (partícula esférica)
 function crearTexturaCirculo() {
   const canvas = document.createElement('canvas');
-  canvas.width = 64;
-  canvas.height = 64;
+  canvas.width = 64; canvas.height = 64;
   const context = canvas.getContext('2d');
-
   context.beginPath();
   context.arc(32, 32, 28, 0, Math.PI * 2, false);
   context.fillStyle = '#ffffff';
   context.fill();
-
   return new THREE.CanvasTexture(canvas);
 }
 
-// Crear grupo individual por factor sensorial
 function crearGrupoParticulas(colorHex) {
   const positions = new Float32Array(particlesPerCategory * 3);
   const basePos = new Float32Array(particlesPerCategory * 3);
@@ -160,20 +147,44 @@ function crearGrupoParticulas(colorHex) {
 }
 
 function crearParticulas() {
-  const volSonido = crearGrupoParticulas(0x2d8cff); // Azul (Sonido)
-  sysSonido = volSonido.mesh;
-  baseSonido = volSonido.basePos;
+  const volSonido = crearGrupoParticulas(0x2d8cff);
+  sysSonido = volSonido.mesh; baseSonido = volSonido.basePos;
 
-  const volLuz = crearGrupoParticulas(0xffdf3f); // Amarillo (Luz)
-  sysLuz = volLuz.mesh;
-  baseLuz = volLuz.basePos;
+  const volLuz = crearGrupoParticulas(0xffdf3f);
+  sysLuz = volLuz.mesh; baseLuz = volLuz.basePos;
 
-  const volTactil = crearGrupoParticulas(0xff3b4f); // Rojo (Táctil / Vibración)
-  sysTactil = volTactil.mesh;
-  baseTactil = volTactil.basePos;
+  const volTactil = crearGrupoParticulas(0xff3b4f);
+  sysTactil = volTactil.mesh; baseTactil = volTactil.basePos;
 }
 
-// Cinética especializada (Decibeles, Lux, Vibración en mm/s²)
+function actualizarMetricasHUD() {
+  const sVal = Number(sliderSonido.value);
+  const lVal = Number(sliderLuz.value);
+  const tVal = Number(sliderTactil.value);
+
+  valSonido.textContent = Math.round(sVal);
+  valLuz.textContent = Math.round(lVal);
+  valTactil.textContent = tVal.toFixed(1);
+
+  mSonido.textContent = Math.round(sVal);
+  mLuz.textContent = Math.round(lVal);
+  mTactil.textContent = tVal.toFixed(1);
+
+  // Actualizar barras porcentuales en base a límites humanos (90dB, 1000Lux, 10mm/s²)
+  barSonido.style.width = `${((sVal - 30) / 60) * 100}%`;
+  barLuz.style.width = `${((lVal - 100) / 900) * 100}%`;
+  barTactil.style.width = `${(tVal / 10) * 100}%`;
+
+  // Evaluar estado de alerta neurodivergente (Umbrales: Sonido > 65, Luz > 500, Táctil > 4.0)
+  if (sVal > 65 || lVal > 500 || tVal > 4.0) {
+    statusText.textContent = "ALERTA: SOBRECARGA CRÍTICA";
+    statusText.className = "quadrant-metric status-danger";
+  } else {
+    statusText.textContent = "ESTADO: CONFORT REGULADO";
+    statusText.className = "quadrant-metric status-safe";
+  }
+}
+
 function moverGrupo(sys, base, slider, time, tipoFactor) {
   const positions = sys.geometry.attributes.position.array;
   const value = Number(slider.value);
@@ -184,7 +195,6 @@ function moverGrupo(sys, base, slider, time, tipoFactor) {
   let velocidad = time * (0.5 + porcentajeActivo * 4.0);
   let amplitud = 0.05 + (porcentajeActivo * 2.5);
 
-  // Si es el canal Táctil, se comporta como vibración armónica de alta frecuencia
   if (tipoFactor === 'tactil') {
     velocidad = time * (2.0 + porcentajeActivo * 12.0); 
     amplitud = 0.02 + (porcentajeActivo * 1.5); 
@@ -194,7 +204,6 @@ function moverGrupo(sys, base, slider, time, tipoFactor) {
 
   for (let i = 0; i < particlesPerCategory; i++) {
     const indice = i * 3;
-    
     const noiseX = tipoFactor === 'tactil' ? Math.sin(time * 50 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
     const noiseY = tipoFactor === 'tactil' ? Math.cos(time * 50 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
     const noiseZ = tipoFactor === 'tactil' ? Math.sin(time * 40 + i) * (porcentajeActivo * 0.2) : (Math.random() - 0.5) * (porcentajeActivo * 0.6);
@@ -216,21 +225,13 @@ function updateParticles() {
   moverGrupo(sysSonido, baseSonido, sliderSonido, time, 'sonido');
   moverGrupo(sysLuz, baseLuz, sliderLuz, time, 'luz');
   moverGrupo(sysTactil, baseTactil, sliderTactil, time, 'tactil');
+  actualizarMetricasHUD();
 }
 
 function configurarSliders() {
-  sliderSonido.addEventListener('input', () => {
-    valSonido.textContent = sliderSonido.value;
-    updateParticles();
-  });
-  sliderLuz.addEventListener('input', () => {
-    valLuz.textContent = sliderLuz.value;
-    updateParticles();
-  });
-  sliderTactil.addEventListener('input', () => {
-    valTactil.textContent = sliderTactil.value;
-    updateParticles();
-  });
+  sliderSonido.addEventListener('input', updateParticles);
+  sliderLuz.addEventListener('input', updateParticles);
+  sliderTactil.addEventListener('input', updateParticles);
 }
 
 function configurarSimulacion() {
@@ -243,15 +244,9 @@ function configurarSimulacion() {
     simulacionActiva = false;
     btnPlay.textContent = 'INICIAR';
     tiempoActualMinutos = 8 * 60;
-    
     sliderSonido.value = 40;
     sliderLuz.value = 300;
     sliderTactil.value = 0.0;
-    
-    valSonido.textContent = '40';
-    valLuz.textContent = '300';
-    valTactil.textContent = '0.0';
-
     relojHora.innerText = '08:00';
     relojActividad.innerText = 'Llegada y Saludo';
     updateParticles();
@@ -286,26 +281,20 @@ function actualizarSimulacion() {
   actualizarActividadActual();
 
   const niveles = cronograma[indiceCronograma].niveles;
-  
-  // Mapeo dinámico de datos curriculares a unidades físicas reales
-  const targetSonido = 30 + (niveles.sonido / 100) * 60; // 30 a 90 dB
-  const targetLuz = 100 + (niveles.luz / 100) * 900;     // 100 a 1000 Lux
-  const targetTactil = (niveles.tactil / 100) * 10;      // 0 a 10 mm/s²
+  const targetSonido = 30 + (niveles.sonido / 100) * 60;
+  const targetLuz = 100 + (niveles.luz / 100) * 900;
+  const targetTactil = (niveles.tactil / 100) * 10;
 
   sliderSonido.value = THREE.MathUtils.lerp(Number(sliderSonido.value), targetSonido, 0.05);
   sliderLuz.value = THREE.MathUtils.lerp(Number(sliderLuz.value), targetLuz, 0.05);
   sliderTactil.value = THREE.MathUtils.lerp(Number(sliderTactil.value), targetTactil, 0.05);
 
-  valSonido.textContent = Math.round(sliderSonido.value);
-  valLuz.textContent = Math.round(sliderLuz.value);
-  valTactil.textContent = Number(sliderTactil.value).toFixed(1);
+  updateParticles();
 }
 
-// Bucle principal con renderizado en 4 vistas simultáneas (ScissorTest)
 function animate() {
   requestAnimationFrame(animate);
   actualizarSimulacion();
-  updateParticles();
   controls.update();
 
   if (!sysSonido) return; 
@@ -318,25 +307,21 @@ function animate() {
 
   renderer.setScissorTest(true);
 
-  // 1. Cuadrante Arriba Izquierda (Solo Sonido - dB)
   renderer.setViewport(leftOffset, halfH, halfW, halfH);
   renderer.setScissor(leftOffset, halfH, halfW, halfH);
   sysSonido.visible = true; sysLuz.visible = false; sysTactil.visible = false;
   renderer.render(scene, camera);
 
-  // 2. Cuadrante Arriba Derecha (Solo Luz - Lux)
   renderer.setViewport(leftOffset + halfW, halfH, halfW, halfH);
   renderer.setScissor(leftOffset + halfW, halfH, halfW, halfH);
   sysSonido.visible = false; sysLuz.visible = true; sysTactil.visible = false;
   renderer.render(scene, camera);
 
-  // 3. Cuadrante Abajo Izquierda (Solo Táctil - Vibración mm/s²)
   renderer.setViewport(leftOffset, 0, halfW, halfH);
   renderer.setScissor(leftOffset, 0, halfW, halfH);
   sysSonido.visible = false; sysLuz.visible = false; sysTactil.visible = true;
   renderer.render(scene, camera);
 
-  // 4. Cuadrante Abajo Derecha (Entorno Combinado Total)
   renderer.setViewport(leftOffset + halfW, 0, halfW, halfH);
   renderer.setScissor(leftOffset + halfW, 0, halfW, halfH);
   sysSonido.visible = true; sysLuz.visible = true; sysTactil.visible = true;
