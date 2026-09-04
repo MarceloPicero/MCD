@@ -8,6 +8,7 @@ const sliderTactil = document.getElementById('slider-tactil');
 const relojHora = document.getElementById('reloj-hora');
 const relojActividad = document.getElementById('reloj-actividad');
 const btnPlay = document.getElementById('btn-play-simulacion');
+const btnReset = document.getElementById('btn-reset-simulacion');
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -142,11 +143,15 @@ function updateParticles() {
     const limiteActivo = particlesPerCategory * porcentajeActivo;
 
     if (indiceCategoria < limiteActivo) {
-      // Las partículas activas vibran simulando la saturación del estímulo
-      const turbulencia = porcentajeActivo * 0.14;
-      positions[indice] = basePositions[indice] + (Math.random() - 0.5) * turbulencia;
-      positions[indice + 1] = basePositions[indice + 1] + (Math.random() - 0.5) * turbulencia;
-      positions[indice + 2] = basePositions[indice + 2] + (Math.random() - 0.5) * turbulencia;
+      const expansion = 1.0 + (porcentajeActivo * 0.8);
+      const turbulencia = porcentajeActivo * 0.6;
+
+      positions[indice] = (basePositions[indice] * expansion)
+        + (Math.random() - 0.5) * turbulencia;
+      positions[indice + 1] = (basePositions[indice + 1] * expansion)
+        + (Math.random() - 0.5) * turbulencia;
+      positions[indice + 2] = (basePositions[indice + 2] * expansion)
+        + (Math.random() - 0.5) * turbulencia;
     } else {
       // Si la partícula excede el valor del slider, se oculta simulando contención
       positions[indice] = basePositions[indice];
@@ -170,6 +175,18 @@ function configurarSimulacion() {
     btnPlay.textContent = simulacionActiva
       ? 'PAUSAR SIMULACI\u00d3N'
       : 'INICIAR SIMULACI\u00d3N';
+  });
+
+  btnReset.addEventListener('click', () => {
+    simulacionActiva = false;
+    btnPlay.textContent = 'INICIAR';
+    tiempoActualMinutos = 8 * 60;
+    sliderSonido.value = 0;
+    sliderLuz.value = 0;
+    sliderTactil.value = 0;
+    relojHora.innerText = '08:00';
+    relojActividad.innerText = 'Llegada y Saludo';
+    updateParticles();
   });
 }
 
@@ -210,13 +227,13 @@ function actualizarSimulacion() {
   sliderSonido.value = THREE.MathUtils.lerp(
     Number(sliderSonido.value),
     niveles.sonido,
-    0.02,
+    0.25,
   );
   sliderLuz.value = THREE.MathUtils.lerp(
-    Number(sliderLuz.value), niveles.luz, 0.02,
+    Number(sliderLuz.value), niveles.luz, 0.25,
   );
   sliderTactil.value = THREE.MathUtils.lerp(
-    Number(sliderTactil.value), niveles.tactil, 0.02,
+    Number(sliderTactil.value), niveles.tactil, 0.25,
   );
 }
 

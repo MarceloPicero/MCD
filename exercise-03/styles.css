@@ -102,7 +102,7 @@ input[type='range']::-webkit-slider-thumb {
 }
 
 .btn-primary {
-  width: 100%;
+  flex: 1;
   padding: 10px;
   color: #000;
   font-size: 11px;
@@ -118,4 +118,30 @@ input[type='range']::-webkit-slider-thumb {
 
 .btn-primary:hover {
   background: #e0e0e0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 10px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid #555;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #333;
+  border-color: #888;
 }
