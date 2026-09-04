@@ -36,6 +36,29 @@ let tiempoActualMinutos = 8 * 60;
 let indiceCronograma = 0;
 const particlesPerCategory = 1000;
 
+// --- PROYECCION DEL AULA ---
+const volumenAula = { ancho: 14, alto: 8, profundidad: 8 };
+
+// Crear lineas (Wireframe) para los limites de la sala
+const geometriaCaja = new THREE.BoxGeometry(
+  volumenAula.ancho,
+  volumenAula.alto,
+  volumenAula.profundidad,
+);
+const bordesCaja = new THREE.EdgesGeometry(geometriaCaja);
+const materialBordes = new THREE.LineBasicMaterial({
+  color: 0x333333,
+  transparent: true,
+  opacity: 0.5,
+});
+const salaWireframe = new THREE.LineSegments(bordesCaja, materialBordes);
+scene.add(salaWireframe);
+
+// Crear una grilla tenue para el piso
+const grillaSuelo = new THREE.GridHelper(volumenAula.ancho, 14, 0x444444, 0x222222);
+grillaSuelo.position.y = -(volumenAula.alto / 2);
+scene.add(grillaSuelo);
+
 async function init() {
   try {
     const response = await fetch('./data/datos_sensoriales.json');
@@ -76,7 +99,6 @@ function crearParticulas() {
   const totalParticles = particlesPerCategory * 3;
   const positions = new Float32Array(totalParticles * 3);
   const colors = new Float32Array(totalParticles * 3);
-  const volumenAula = { ancho: 14, alto: 8, profundidad: 8 };
   const colorSonido = new THREE.Color(0x2d8cff);
   const colorLuz = new THREE.Color(0xffdf3f);
   const colorTactil = new THREE.Color(0xff3b4f);

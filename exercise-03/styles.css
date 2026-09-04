@@ -145,3 +145,19 @@ input[type='range']::-webkit-slider-thumb {
   background: #333;
   border-color: #888;
 }
+
+/* Colores representativos para los sliders */
+#slider-sonido::-webkit-slider-thumb {
+  background: #2d8cff;
+  box-shadow: 0 0 8px rgba(45, 140, 255, 0.6);
+}
+
+#slider-luz::-webkit-slider-thumb {
+  background: #ffdf3f;
+  box-shadow: 0 0 8px rgba(255, 223, 63, 0.6);
+}
+
+#slider-tactil::-webkit-slider-thumb {
+  background: #ff3b4f;
+  box-shadow: 0 0 8px rgba(255, 59, 79, 0.6);
+}
