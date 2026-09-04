@@ -18,7 +18,7 @@
     <div id="quadrant-labels">
       <!-- Cuadrante 1: Sonido -->
       <div class="q-label q-tl">
-        <span>SOBRECARGA SONORA</span>
+        <span>SOBRECARGA SONORA (MIC)</span>
         <div class="quadrant-metric">Actual: <span id="m-sonido">40</span> dB</div>
         <div class="limit-bar"><div id="bar-sonido" class="bar-fill blue"></div></div>
         <div class="limit-text">Umbral Neurodivergente: 65 dB | Límite: 85 dB</div>
@@ -26,7 +26,7 @@
 
       <!-- Cuadrante 2: Luz -->
       <div class="q-label q-tr">
-        <span>SOBRECARGA LUM&Iacute;NICA</span>
+        <span>SOBRECARGA LUM&Iacute;NICA (CÁMARA)</span>
         <div class="quadrant-metric">Actual: <span id="m-luz">300</span> Lux</div>
         <div class="limit-bar"><div id="bar-luz" class="bar-fill yellow"></div></div>
         <div class="limit-text">Umbral Neurodivergente: 500 Lux | Límite: 800 Lux</div>
@@ -44,7 +44,7 @@
       <div class="q-label q-br">
         <span>ENTORNO COMBINADO</span>
         <div class="quadrant-metric status-safe" id="status-text">ESTADO: CONFORT</div>
-        <div class="limit-text">Monitoreo Multidimensional de Estrés</div>
+        <div class="limit-text">Monitoreo Multidimensional en Vivo</div>
       </div>
     </div>
 
@@ -59,13 +59,14 @@
       </div>
 
       <section class="panel-section clock-section">
-        <h4>JORNADA ESCOLAR</h4>
+        <h4>CAPTURA DE ENTORNO EN VIVO</h4>
+        <button id="btn-sensores" class="btn-primary" style="width: 100%; margin-bottom: 12px;">Activar Sensores (Mic/Cam)</button>
         <div class="clock-display">
           <span id="reloj-hora">08:00</span>
         </div>
-        <p id="reloj-actividad" class="activity-text">Llegada y Saludo</p>
+        <p id="reloj-actividad" class="activity-text">Modo Manual / Simulación</p>
         <div class="action-buttons">
-          <button id="btn-play-simulacion" class="btn-primary">Iniciar</button>
+          <button id="btn-play-simulacion" class="btn-primary">Iniciar Reloj</button>
           <button id="btn-reset-simulacion" class="btn-secondary">Reiniciar</button>
         </div>
       </section>
@@ -92,8 +93,8 @@
       <section class="panel-section">
         <h2>REGLAS DE REPRESENTACI&Oacute;N</h2>
         <ul class="color-legend">
-          <li>Sonido &rarr; Azul (Acústica)</li>
-          <li>Luz &rarr; Amarillo (Lumínica)</li>
+          <li>Sonido &rarr; Azul (Acústica en vivo)</li>
+          <li>Luz &rarr; Amarillo (Lumínica en vivo)</li>
           <li>T&aacute;ctil &rarr; Rojo (Vibracional)</li>
         </ul>
       </section>

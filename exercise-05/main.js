@@ -11,7 +11,6 @@ const valSonido = document.getElementById('val-sonido');
 const valLuz = document.getElementById('val-luz');
 const valTactil = document.getElementById('val-tactil');
 
-// HUD Metricas en Cuadrantes
 const mSonido = document.getElementById('m-sonido');
 const mLuz = document.getElementById('m-luz');
 const mTactil = document.getElementById('m-tactil');
@@ -24,6 +23,7 @@ const relojHora = document.getElementById('reloj-hora');
 const relojActividad = document.getElementById('reloj-actividad');
 const btnPlay = document.getElementById('btn-play-simulacion');
 const btnReset = document.getElementById('btn-reset-simulacion');
+const btnSensores = document.getElementById('btn-sensores');
 
 const scene = new THREE.Scene();
 
@@ -44,9 +44,17 @@ let baseSonido, baseLuz, baseTactil;
 
 let cronograma = [];
 let simulacionActiva = false;
+let sensoresActivos = false;
 let tiempoActualMinutos = 8 * 60;
 let indiceCronograma = 0;
 const particlesPerCategory = 1000;
+
+// Variables para captura de sensores en tiempo real
+let audioAnalyser = null;
+let audioContext = null;
+let videoElement = null;
+let videoCanvas = null;
+let videoCtx = null;
 
 const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(luzAmbiente);
@@ -63,14 +71,10 @@ async function init() {
 
     const datos = await response.json();
     cronograma = datos.cronograma_curricular || [];
-    const factores = datos.factores_desregulacion;
 
     sliderSonido.max = 90; sliderSonido.min = 30;
-    sliderSonido.value = 40;
     sliderLuz.max = 1000; sliderLuz.min = 100;
-    sliderLuz.value = 300;
     sliderTactil.max = 10; sliderTactil.min = 0;
-    sliderTactil.value = 0.0;
 
     actualizarMetricasHUD();
 
@@ -86,12 +90,82 @@ async function init() {
     crearParticulas();
     configurarSliders();
     configurarSimulacion();
+    configurarSensores();
     formatearHora(tiempoActualMinutos);
-    actualizarActividadActual();
     animate();
   } catch (error) {
     console.error('Error al inicializar:', error);
   }
+}
+
+// Inicializar hardware de Microfono y Camara
+async function configurarSensores() {
+  btnSensores.addEventListener('click', async () => {
+    try {
+      // 1. Activar Micrófono
+      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioContext.createMediaStreamSource(audioStream);
+      audioAnalyser = audioContext.createAnalyser();
+      audioAnalyser.fftSize = 256;
+      source.connect(audioAnalyser);
+
+      // 2. Activar Cámara Web
+      const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoElement = document.createElement('video');
+      videoElement.srcObject = videoStream;
+      videoElement.autoplay = true;
+      videoElement.playsInline = true;
+      await videoElement.play();
+
+      videoCanvas = document.createElement('canvas');
+      videoCanvas.width = 64;
+      videoCanvas.height = 64;
+      videoCtx = videoCanvas.getContext('2d');
+
+      sensoresActivos = true;
+      btnSensores.textContent = "SENSORES EN VIVO ACTIVOS";
+      btnSensores.style.background = "#2d8cff";
+      relojActividad.textContent = "Monitoreando Entorno Físico (Mic/Cam)";
+    } catch (e) {
+      alert("No se pudieron activar los permisos de cámara o micrófono.");
+      console.error(e);
+    }
+  });
+}
+
+function obtenerDatosSensoresEnVivo() {
+  if (!sensoresActivos) return null;
+
+  // Medir Audio (Micrófono) -> Decibeles simulados (30 a 90 dB)
+  let dbValue = Number(sliderSonido.value);
+  if (audioAnalyser) {
+    const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+    audioAnalyser.getByteFrequencyData(dataArray);
+    let sum = 0;
+    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+    let avg = sum / dataArray.length;
+    dbValue = 30 + (avg / 255) * 60; // Mapeo gradual
+  }
+
+  // Medir Luz (Cámara) -> Lux simulados (100 a 1000 Lux)
+  let luxValue = Number(sliderLuz.value);
+  if (videoElement && videoCtx && videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
+    videoCtx.drawImage(videoElement, 0, 0, 64, 64);
+    const frame = videoCtx.getImageData(0, 0, 64, 64);
+    let colorSum = 0;
+    for (let i = 0; i < frame.data.length; i += 4) {
+      const r = frame.data[i];
+      const g = frame.data[i+1];
+      const b = frame.data[i+2];
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b; // Luminancia perceptual
+      colorSum += lum;
+    }
+    const avgLum = colorSum / (frame.data.length / 4);
+    luxValue = 100 + (avgLum / 255) * 900; // Mapeo gradual
+  }
+
+  return { sonido: dbValue, luz: luxValue };
 }
 
 function crearTexturaCirculo() {
@@ -170,12 +244,10 @@ function actualizarMetricasHUD() {
   mLuz.textContent = Math.round(lVal);
   mTactil.textContent = tVal.toFixed(1);
 
-  // Actualizar barras porcentuales en base a límites humanos (90dB, 1000Lux, 10mm/s²)
   barSonido.style.width = `${((sVal - 30) / 60) * 100}%`;
   barLuz.style.width = `${((lVal - 100) / 900) * 100}%`;
   barTactil.style.width = `${(tVal / 10) * 100}%`;
 
-  // Evaluar estado de alerta neurodivergente (Umbrales: Sonido > 65, Luz > 500, Táctil > 4.0)
   if (sVal > 65 || lVal > 500 || tVal > 4.0) {
     statusText.textContent = "ALERTA: SOBRECARGA CRÍTICA";
     statusText.className = "quadrant-metric status-danger";
@@ -221,6 +293,17 @@ function moverGrupo(sys, base, slider, time, tipoFactor) {
 
 function updateParticles() {
   if (!sysSonido) return;
+
+  // Si los sensores en vivo están activos, capturamos y actualizamos los valores de forma gradual
+  if (sensoresActivos) {
+    const datosVivo = obtenerDatosSensoresEnVivo();
+    if (datosVivo) {
+      // Interpolación suave gradual (LERP) para evitar saltos bruscos en las partículas
+      sliderSonido.value = THREE.MathUtils.lerp(Number(sliderSonido.value), datosVivo.sonido, 0.1);
+      sliderLuz.value = THREE.MathUtils.lerp(Number(sliderLuz.value), datosVivo.luz, 0.1);
+    }
+  }
+
   const time = performance.now() * 0.001;
   moverGrupo(sysSonido, baseSonido, sliderSonido, time, 'sonido');
   moverGrupo(sysLuz, baseLuz, sliderLuz, time, 'luz');
@@ -237,18 +320,18 @@ function configurarSliders() {
 function configurarSimulacion() {
   btnPlay.addEventListener('click', () => {
     simulacionActiva = !simulacionActiva;
-    btnPlay.textContent = simulacionActiva ? 'PAUSAR' : 'INICIAR';
+    btnPlay.textContent = simulacionActiva ? 'PAUSAR' : 'INICIAR RELOJ';
   });
 
   btnReset.addEventListener('click', () => {
     simulacionActiva = false;
-    btnPlay.textContent = 'INICIAR';
+    btnPlay.textContent = 'INICIAR RELOJ';
     tiempoActualMinutos = 8 * 60;
     sliderSonido.value = 40;
     sliderLuz.value = 300;
     sliderTactil.value = 0.0;
     relojHora.innerText = '08:00';
-    relojActividad.innerText = 'Llegada y Saludo';
+    relojActividad.innerText = sensoresActivos ? "Monitoreando Entorno Físico" : "Modo Manual / Simulación";
     updateParticles();
   });
 }
@@ -261,26 +344,21 @@ function formatearHora(minutosTotales) {
   return horaFormateada;
 }
 
-function actualizarActividadActual() {
-  if (cronograma.length === 0) return;
-  const indiceEncontrado = cronograma.reduce((indiceActual, entrada, indice) => {
-    const [horas, minutos] = entrada.hora.split(':').map(Number);
-    return horas * 60 + minutos <= tiempoActualMinutos ? indice : indiceActual;
-  }, 0);
-  indiceCronograma = indiceEncontrado;
-  relojActividad.textContent = cronograma[indiceCronograma].actividad;
-}
-
 function actualizarSimulacion() {
-  if (!simulacionActiva || cronograma.length === 0) return;
+  if (!simulacionActiva || cronograma.length === 0 || sensoresActivos) return;
 
   tiempoActualMinutos += 0.5;
   if (tiempoActualMinutos > 13 * 60) tiempoActualMinutos = 8 * 60;
 
   formatearHora(tiempoActualMinutos);
-  actualizarActividadActual();
+  
+  const indiceEncontrado = cronograma.reduce((indiceActual, entrada, indice) => {
+    const [horas, minutos] = entrada.hora.split(':').map(Number);
+    return horas * 60 + minutos <= tiempoActualMinutos ? indice : indiceActual;
+  }, 0);
+  relojActividad.textContent = cronograma[indiceEncontrado].actividad;
 
-  const niveles = cronograma[indiceCronograma].niveles;
+  const niveles = cronograma[indiceEncontrado].niveles;
   const targetSonido = 30 + (niveles.sonido / 100) * 60;
   const targetLuz = 100 + (niveles.luz / 100) * 900;
   const targetTactil = (niveles.tactil / 100) * 10;
@@ -288,13 +366,12 @@ function actualizarSimulacion() {
   sliderSonido.value = THREE.MathUtils.lerp(Number(sliderSonido.value), targetSonido, 0.05);
   sliderLuz.value = THREE.MathUtils.lerp(Number(sliderLuz.value), targetLuz, 0.05);
   sliderTactil.value = THREE.MathUtils.lerp(Number(sliderTactil.value), targetTactil, 0.05);
-
-  updateParticles();
 }
 
 function animate() {
   requestAnimationFrame(animate);
   actualizarSimulacion();
+  updateParticles();
   controls.update();
 
   if (!sysSonido) return; 
