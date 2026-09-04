@@ -42,12 +42,15 @@ async function init() {
     const impactoLuz = factores.luz.impacto_porcentaje;
     const impactoTactil = factores.tactil_espacial.impacto_porcentaje;
 
+    // Configuramos el máximo de los sliders según la data
     sliderSonido.max = impactoSonido;
     sliderLuz.max = impactoLuz;
     sliderTactil.max = impactoTactil;
-    sliderSonido.value = 0;
-    sliderLuz.value = 0;
-    sliderTactil.value = 0;
+    
+    // CORRECCIÓN: Inicializamos los sliders en su valor máximo para visualizar el estado de desregulación base
+    sliderSonido.value = impactoSonido;
+    sliderLuz.value = impactoLuz;
+    sliderTactil.value = impactoTactil;
 
     crearParticulas();
     configurarSliders();
@@ -81,9 +84,11 @@ function crearParticulas() {
     basePositions[indice] = (Math.random() - 0.5) * volumenAula.ancho;
     basePositions[indice + 1] = (Math.random() - 0.5) * volumenAula.alto;
     basePositions[indice + 2] = (Math.random() - 0.5) * volumenAula.profundidad;
+    
     positions[indice] = basePositions[indice];
-    positions[indice + 1] = 999999;
+    positions[indice + 1] = basePositions[indice + 1]; // Corregido: inician en su posición real, no ocultas
     positions[indice + 2] = basePositions[indice + 2];
+    
     categories[i] = categoria;
     colors[indice] = color.r;
     colors[indice + 1] = color.g;
@@ -95,7 +100,7 @@ function crearParticulas() {
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
   const material = new THREE.PointsMaterial({
-    size: 0.08,
+    size: 0.15, // Aumentado ligeramente para mejor lectura espacial
     vertexColors: true,
     transparent: true,
     opacity: 0.88,
@@ -121,15 +126,18 @@ function updateParticles() {
     const categoria = categories[i];
     const indiceCategoria = i % particlesPerCategory;
     const { value, max } = valores[categoria];
+    
     const porcentajeActivo = max > 0 ? value / max : 0;
     const limiteActivo = particlesPerCategory * porcentajeActivo;
 
     if (indiceCategoria < limiteActivo) {
+      // Las partículas activas vibran simulando la saturación del estímulo
       const turbulencia = porcentajeActivo * 0.14;
       positions[indice] = basePositions[indice] + (Math.random() - 0.5) * turbulencia;
       positions[indice + 1] = basePositions[indice + 1] + (Math.random() - 0.5) * turbulencia;
       positions[indice + 2] = basePositions[indice + 2] + (Math.random() - 0.5) * turbulencia;
     } else {
+      // Si la partícula excede el valor del slider, se oculta simulando contención
       positions[indice] = basePositions[indice];
       positions[indice + 1] = 999999;
       positions[indice + 2] = basePositions[indice + 2];
