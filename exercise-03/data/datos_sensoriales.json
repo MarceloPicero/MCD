@@ -1,0 +1,40 @@
+﻿{
+  "contexto": "Aula de Primera Infancia (4 a 6 años)",
+  "factores_desregulacion": {
+    "sonido": {
+      "impacto_porcentaje": 85,
+      "descripcion": "Gritos, eco, movimiento de sillas y timbres."
+    },
+    "luz": {
+      "impacto_porcentaje": 65,
+      "descripcion": "Tubos fluorescentes directos y reflejos en pizarras."
+    },
+    "tactil_espacial": {
+      "impacto_porcentaje": 40,
+      "descripcion": "Proximidad física con compañeros y texturas del mobiliario."
+    }
+  },
+  "estrategias_contencion": [
+    {
+      "id": "estrategia_acustica",
+      "nombre": "Aislar estímulo sonoro",
+      "accion_intuitiva": "Llevar al niño a un lugar silencioso o tapar oídos.",
+      "efectividad_porcentaje": 75,
+      "variable_afectada": "sonido"
+    },
+    {
+      "id": "estrategia_luminica",
+      "nombre": "Reducir carga visual",
+      "accion_intuitiva": "Apagar la luz o buscar un rincón oscuro.",
+      "efectividad_porcentaje": 60,
+      "variable_afectada": "luz"
+    },
+    {
+      "id": "estrategia_tactil",
+      "nombre": "Contención física u objeto",
+      "accion_intuitiva": "Abrazo profundo o entregar un objeto de apego/textura.",
+      "efectividad_porcentaje": 80,
+      "variable_afectada": "tactil_espacial"
+    }
+  ]
+}
