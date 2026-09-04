@@ -12,34 +12,31 @@ const btnPlay = document.getElementById('btn-play-simulacion');
 const btnReset = document.getElementById('btn-reset-simulacion');
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000,
-);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
 
+// Ajuste del aspect ratio restando los 380px del panel lateral
+const aspect = (window.innerWidth - 380) / window.innerHeight;
+const camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
+camera.position.set(0, 5, 20);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 container.appendChild(renderer.domElement);
-camera.position.set(0, 0, 16);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-let sysSonido;
-let sysLuz;
-let sysTactil;
-let baseSonido;
-let baseLuz;
-let baseTactil;
+// Variables para los 3 sistemas independientes
+let sysSonido, sysLuz, sysTactil;
+let baseSonido, baseLuz, baseTactil;
+
 let cronograma = [];
 let simulacionActiva = false;
 let tiempoActualMinutos = 8 * 60;
 let indiceCronograma = 0;
 const particlesPerCategory = 1000;
 
+// Iluminación para el modelo 3D
 const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(luzAmbiente);
 const luzDirecta = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -59,33 +56,23 @@ async function init() {
     const datos = await response.json();
     cronograma = datos.cronograma_curricular || [];
     const factores = datos.factores_desregulacion;
-    const impactoSonido = factores.sonido.impacto_porcentaje;
-    const impactoLuz = factores.luz.impacto_porcentaje;
-    const impactoTactil = factores.tactil_espacial.impacto_porcentaje;
 
-    // Configuramos el máximo de los sliders según la data
-    sliderSonido.max = impactoSonido;
-    sliderLuz.max = impactoLuz;
-    sliderTactil.max = impactoTactil;
+    // Configurar sliders
+    sliderSonido.max = factores.sonido.impacto_porcentaje;
+    sliderLuz.max = factores.luz.impacto_porcentaje;
+    sliderTactil.max = factores.tactil_espacial.impacto_porcentaje;
     
-    // CORRECCIÓN: Inicializamos los sliders en su valor máximo para visualizar el estado de desregulación base
-    sliderSonido.value = impactoSonido;
-    sliderLuz.value = impactoLuz;
-    sliderTactil.value = impactoTactil;
+    sliderSonido.value = factores.sonido.impacto_porcentaje;
+    sliderLuz.value = factores.luz.impacto_porcentaje;
+    sliderTactil.value = factores.tactil_espacial.impacto_porcentaje;
 
+    // Cargar Sala 3D
     const loader = new GLTFLoader();
     loader.load('./assets/sala.glb', function (gltf) {
       const modeloSala = gltf.scene;
-
-      // Apoyar el modelo en la base del volumen de partículas
       modeloSala.position.y = -(volumenAula.alto / 2);
-
-      // Girar el modelo 90 grados para adaptarlo a la orientación del volumen
       modeloSala.rotation.y = Math.PI / 2;
-
-      // Escalar el modelo proporcionalmente.
       modeloSala.scale.set(6, 6, 6);
-
       scene.add(modeloSala);
     }, undefined, function (error) {
       console.error('Error al cargar el modelo 3D de la sala:', error);
@@ -102,41 +89,29 @@ async function init() {
   }
 }
 
-function crearParticulas() {
-  const totalParticles = particlesPerCategory * 3;
-  const positions = new Float32Array(totalParticles * 3);
-  const colors = new Float32Array(totalParticles * 3);
-  const colorSonido = new THREE.Color(0x2d8cff);
-  const colorLuz = new THREE.Color(0xffdf3f);
-  const colorTactil = new THREE.Color(0xff3b4f);
+// Función auxiliar para crear grupos individuales
+function crearGrupoParticulas(colorHex) {
+  const positions = new Float32Array(particlesPerCategory * 3);
+  const basePos = new Float32Array(particlesPerCategory * 3);
+  const colors = new Float32Array(particlesPerCategory * 3);
+  const color = new THREE.Color(colorHex);
 
-  basePositions = new Float32Array(totalParticles * 3);
-  categories = new Uint8Array(totalParticles);
-
-  for (let i = 0; i < totalParticles; i += 1) {
+  for (let i = 0; i < particlesPerCategory; i++) {
     const indice = i * 3;
-    const categoria = Math.floor(i / particlesPerCategory);
-    const color = categoria === 0
-      ? colorSonido
-      : categoria === 1
-        ? colorLuz
-        : colorTactil;
+    basePos[indice] = (Math.random() - 0.5) * volumenAula.ancho;
+    basePos[indice + 1] = (Math.random() - 0.5) * volumenAula.alto;
+    basePos[indice + 2] = (Math.random() - 0.5) * volumenAula.profundidad;
 
-    basePositions[indice] = (Math.random() - 0.5) * volumenAula.ancho;
-    basePositions[indice + 1] = (Math.random() - 0.5) * volumenAula.alto;
-    basePositions[indice + 2] = (Math.random() - 0.5) * volumenAula.profundidad;
-    
-    positions[indice] = basePositions[indice];
-    positions[indice + 1] = basePositions[indice + 1]; // Corregido: inician en su posición real, no ocultas
-    positions[indice + 2] = basePositions[indice + 2];
-    
-    categories[i] = categoria;
+    positions[indice] = basePos[indice];
+    positions[indice + 1] = basePos[indice + 1];
+    positions[indice + 2] = basePos[indice + 2];
+
     colors[indice] = color.r;
     colors[indice + 1] = color.g;
     colors[indice + 2] = color.b;
   }
 
-  geometry = new THREE.BufferGeometry();
+  const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
@@ -148,50 +123,57 @@ function crearParticulas() {
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     map: crearTexturaCirculo(),
-    alphaTest: 0.5,
+    alphaTest: 0.5
   });
 
-  scene.add(new THREE.Points(geometry, material));
+  const mesh = new THREE.Points(geometry, material);
+  scene.add(mesh);
+  return { mesh, basePos };
+}
+
+function crearParticulas() {
+  const volSonido = crearGrupoParticulas(0x2d8cff); // Azul
+  sysSonido = volSonido.mesh;
+  baseSonido = volSonido.basePos;
+
+  const volLuz = crearGrupoParticulas(0xffdf3f); // Amarillo
+  sysLuz = volLuz.mesh;
+  baseLuz = volLuz.basePos;
+
+  const volTactil = crearGrupoParticulas(0xff3b4f); // Rojo
+  sysTactil = volTactil.mesh;
+  baseTactil = volTactil.basePos;
+}
+
+function moverGrupo(sys, base, slider, time) {
+  const positions = sys.geometry.attributes.position.array;
+  const value = Number(slider.value);
+  const max = Number(slider.max);
+  const porcentajeActivo = max > 0 ? value / max : 0;
+
+  const velocidad = time * (0.5 + porcentajeActivo * 4.0);
+  const amplitud = 0.05 + (porcentajeActivo * 2.5);
+  const expansion = 1.0 + (porcentajeActivo * 0.8);
+
+  for (let i = 0; i < particlesPerCategory; i++) {
+    const indice = i * 3;
+    const offsetX = Math.sin(velocidad + i * 1.1) * amplitud;
+    const offsetY = Math.cos(velocidad + i * 1.3) * amplitud;
+    const offsetZ = Math.sin(velocidad + i * 1.5) * amplitud;
+
+    positions[indice] = (base[indice] * expansion) + offsetX;
+    positions[indice + 1] = (base[indice + 1] * expansion) + offsetY;
+    positions[indice + 2] = (base[indice + 2] * expansion) + offsetZ;
+  }
+  sys.geometry.attributes.position.needsUpdate = true;
 }
 
 function updateParticles() {
-  if (!geometry) return;
-
-  const positions = geometry.attributes.position.array;
-  const valores = [
-    { value: Number(sliderSonido.value), max: Number(sliderSonido.max) },
-    { value: Number(sliderLuz.value), max: Number(sliderLuz.max) },
-    { value: Number(sliderTactil.value), max: Number(sliderTactil.max) },
-  ];
-
-  for (let i = 0; i < categories.length; i += 1) {
-    const indice = i * 3;
-    const categoria = categories[i];
-    const indiceCategoria = i % particlesPerCategory;
-    const { value, max } = valores[categoria];
-    
-    const porcentajeActivo = max > 0 ? value / max : 0;
-    const limiteActivo = particlesPerCategory * porcentajeActivo;
-
-    if (indiceCategoria < limiteActivo) {
-      const expansion = 1.0 + (porcentajeActivo * 0.8);
-      const turbulencia = porcentajeActivo * 0.6;
-
-      positions[indice] = (basePositions[indice] * expansion)
-        + (Math.random() - 0.5) * turbulencia;
-      positions[indice + 1] = (basePositions[indice + 1] * expansion)
-        + (Math.random() - 0.5) * turbulencia;
-      positions[indice + 2] = (basePositions[indice + 2] * expansion)
-        + (Math.random() - 0.5) * turbulencia;
-    } else {
-      // Si la partícula excede el valor del slider, se oculta simulando contención
-      positions[indice] = basePositions[indice];
-      positions[indice + 1] = 999999;
-      positions[indice + 2] = basePositions[indice + 2];
-    }
-  }
-
-  geometry.attributes.position.needsUpdate = true;
+  if (!sysSonido) return; // Evitar errores si no han cargado
+  const time = performance.now() * 0.001;
+  moverGrupo(sysSonido, baseSonido, sliderSonido, time);
+  moverGrupo(sysLuz, baseLuz, sliderLuz, time);
+  moverGrupo(sysTactil, baseTactil, sliderTactil, time);
 }
 
 function configurarSliders() {
@@ -203,9 +185,7 @@ function configurarSliders() {
 function configurarSimulacion() {
   btnPlay.addEventListener('click', () => {
     simulacionActiva = !simulacionActiva;
-    btnPlay.textContent = simulacionActiva
-      ? 'PAUSAR SIMULACI\u00d3N'
-      : 'INICIAR SIMULACI\u00d3N';
+    btnPlay.textContent = simulacionActiva ? 'PAUSAR' : 'INICIAR';
   });
 
   btnReset.addEventListener('click', () => {
@@ -225,19 +205,16 @@ function formatearHora(minutosTotales) {
   const horas = Math.floor(minutosTotales / 60);
   const minutos = Math.floor(minutosTotales % 60);
   const horaFormateada = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
-
   relojHora.textContent = horaFormateada;
   return horaFormateada;
 }
 
 function actualizarActividadActual() {
   if (cronograma.length === 0) return;
-
   const indiceEncontrado = cronograma.reduce((indiceActual, entrada, indice) => {
     const [horas, minutos] = entrada.hora.split(':').map(Number);
     return horas * 60 + minutos <= tiempoActualMinutos ? indice : indiceActual;
   }, 0);
-
   indiceCronograma = indiceEncontrado;
   relojActividad.textContent = cronograma[indiceCronograma].actividad;
 }
@@ -246,44 +223,68 @@ function actualizarSimulacion() {
   if (!simulacionActiva || cronograma.length === 0) return;
 
   tiempoActualMinutos += 0.5;
-
-  if (tiempoActualMinutos > 13 * 60) {
-    tiempoActualMinutos = 8 * 60;
-  }
+  if (tiempoActualMinutos > 13 * 60) tiempoActualMinutos = 8 * 60;
 
   formatearHora(tiempoActualMinutos);
   actualizarActividadActual();
 
   const niveles = cronograma[indiceCronograma].niveles;
-  sliderSonido.value = THREE.MathUtils.lerp(
-    Number(sliderSonido.value),
-    niveles.sonido,
-    0.25,
-  );
-  sliderLuz.value = THREE.MathUtils.lerp(
-    Number(sliderLuz.value), niveles.luz, 0.25,
-  );
-  sliderTactil.value = THREE.MathUtils.lerp(
-    Number(sliderTactil.value), niveles.tactil, 0.25,
-  );
+  sliderSonido.value = THREE.MathUtils.lerp(Number(sliderSonido.value), niveles.sonido, 0.05);
+  sliderLuz.value = THREE.MathUtils.lerp(Number(sliderLuz.value), niveles.luz, 0.05);
+  sliderTactil.value = THREE.MathUtils.lerp(Number(sliderTactil.value), niveles.tactil, 0.05);
 }
 
+// Bucle principal con ScissorTest para dividir la pantalla en 4
 function animate() {
   requestAnimationFrame(animate);
   actualizarSimulacion();
   updateParticles();
   controls.update();
+
+  if (!sysSonido) return; // No renderizar hasta que existan las partículas
+
+  const leftOffset = 380; 
+  const w = window.innerWidth - leftOffset;
+  const h = window.innerHeight;
+  const halfW = w / 2;
+  const halfH = h / 2;
+
+  renderer.setScissorTest(true);
+
+  // 1. Cuadrante Arriba Izquierda (Solo Sonido)
+  renderer.setViewport(leftOffset, halfH, halfW, halfH);
+  renderer.setScissor(leftOffset, halfH, halfW, halfH);
+  sysSonido.visible = true; sysLuz.visible = false; sysTactil.visible = false;
   renderer.render(scene, camera);
+
+  // 2. Cuadrante Arriba Derecha (Solo Luz)
+  renderer.setViewport(leftOffset + halfW, halfH, halfW, halfH);
+  renderer.setScissor(leftOffset + halfW, halfH, halfW, halfH);
+  sysSonido.visible = false; sysLuz.visible = true; sysTactil.visible = false;
+  renderer.render(scene, camera);
+
+  // 3. Cuadrante Abajo Izquierda (Solo Táctil)
+  renderer.setViewport(leftOffset, 0, halfW, halfH);
+  renderer.setScissor(leftOffset, 0, halfW, halfH);
+  sysSonido.visible = false; sysLuz.visible = false; sysTactil.visible = true;
+  renderer.render(scene, camera);
+
+  // 4. Cuadrante Abajo Derecha (Todos combinados)
+  renderer.setViewport(leftOffset + halfW, 0, halfW, halfH);
+  renderer.setScissor(leftOffset + halfW, 0, halfW, halfH);
+  sysSonido.visible = true; sysLuz.visible = true; sysTactil.visible = true;
+  renderer.render(scene, camera);
+
+  renderer.setScissorTest(false);
 }
 
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = (window.innerWidth - 380) / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-init();
-
+// Generador de textura esférica para las partículas
 function crearTexturaCirculo() {
   const canvas = document.createElement('canvas');
   canvas.width = 64;
@@ -297,3 +298,5 @@ function crearTexturaCirculo() {
 
   return new THREE.CanvasTexture(canvas);
 }
+
+init();
