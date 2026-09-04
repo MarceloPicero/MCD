@@ -1,0 +1,78 @@
+﻿{
+    "contexto":  "Aula de Primera Infancia (4 a 6 años)",
+    "factores_desregulacion":  {
+                                   "sonido":  {
+                                                  "impacto_porcentaje":  85,
+                                                  "descripcion":  "Gritos, eco, movimiento de sillas y timbres."
+                                              },
+                                   "luz":  {
+                                               "impacto_porcentaje":  65,
+                                               "descripcion":  "Tubos fluorescentes directos y reflejos en pizarras."
+                                           },
+                                   "tactil_espacial":  {
+                                                           "impacto_porcentaje":  40,
+                                                           "descripcion":  "Proximidad física con compañeros y texturas del mobiliario."
+                                                       }
+                               },
+    "estrategias_contencion":  [
+                                   {
+                                       "id":  "estrategia_acustica",
+                                       "nombre":  "Aislar estímulo sonoro",
+                                       "accion_intuitiva":  "Llevar al niño a un lugar silencioso o tapar oídos.",
+                                       "efectividad_porcentaje":  75,
+                                       "variable_afectada":  "sonido"
+                                   },
+                                   {
+                                       "id":  "estrategia_luminica",
+                                       "nombre":  "Reducir carga visual",
+                                       "accion_intuitiva":  "Apagar la luz o buscar un rincón oscuro.",
+                                       "efectividad_porcentaje":  60,
+                                       "variable_afectada":  "luz"
+                                   },
+                                   {
+                                       "id":  "estrategia_tactil",
+                                       "nombre":  "Contención física u objeto",
+                                       "accion_intuitiva":  "Abrazo profundo o entregar un objeto de apego/textura.",
+                                       "efectividad_porcentaje":  80,
+                                       "variable_afectada":  "tactil_espacial"
+                                   }
+                               ],
+    "cronograma_curricular":  [
+                                  {
+                                      "actividad":  "Llegada y Saludo",
+                                      "niveles":  {
+                                                      "tactil":  60,
+                                                      "sonido":  65,
+                                                      "luz":  50
+                                                  },
+                                      "hora":  "08:00"
+                                  },
+                                  {
+                                      "actividad":  "Juego Libre (Caso Crítico)",
+                                      "niveles":  {
+                                                      "tactil":  80,
+                                                      "sonido":  85,
+                                                      "luz":  65
+                                                  },
+                                      "hora":  "09:30"
+                                  },
+                                  {
+                                      "actividad":  "Hora del Cuento",
+                                      "niveles":  {
+                                                      "tactil":  15,
+                                                      "sonido":  20,
+                                                      "luz":  30
+                                                  },
+                                      "hora":  "11:00"
+                                  },
+                                  {
+                                      "actividad":  "Preparación Salida",
+                                      "niveles":  {
+                                                      "tactil":  50,
+                                                      "sonido":  75,
+                                                      "luz":  60
+                                                  },
+                                      "hora":  "12:30"
+                                  }
+                              ]
+}
