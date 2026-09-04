@@ -44,15 +44,6 @@ luzDirecta.position.set(10, 20, 15);
 scene.add(luzDirecta);
 
 const volumenAula = { ancho: 14, alto: 8, profundidad: 8 };
-const geometriaCaja = new THREE.BoxGeometry(volumenAula.ancho, volumenAula.alto, volumenAula.profundidad);
-const bordesCaja = new THREE.EdgesGeometry(geometriaCaja);
-const materialBordes = new THREE.LineBasicMaterial({ color: 0x444444, transparent: true, opacity: 0.3 });
-const salaWireframe = new THREE.LineSegments(bordesCaja, materialBordes);
-scene.add(salaWireframe);
-
-const grillaSuelo = new THREE.GridHelper(volumenAula.ancho, 14, 0x555555, 0x222222);
-grillaSuelo.position.y = -(volumenAula.alto / 2);
-scene.add(grillaSuelo);
 
 async function init() {
   try {
@@ -80,11 +71,20 @@ async function init() {
     sliderTactil.value = impactoTactil;
 
     const loader = new GLTFLoader();
-    loader.load('./assets/sala.glb', (gltf) => {
+    loader.load('./assets/sala.glb', function (gltf) {
       const modeloSala = gltf.scene;
+
+      // Apoyar el modelo en la base del volumen de partículas
       modeloSala.position.y = -(volumenAula.alto / 2);
+
+      // Girar el modelo 90 grados para adaptarlo a la orientación del volumen
+      modeloSala.rotation.y = Math.PI / 2;
+
+      // Escalar el modelo proporcionalmente.
+      modeloSala.scale.set(6, 6, 6);
+
       scene.add(modeloSala);
-    }, undefined, (error) => {
+    }, undefined, function (error) {
       console.error('Error al cargar el modelo 3D de la sala:', error);
     });
 
