@@ -185,3 +185,74 @@ input[type='range']::-webkit-slider-thumb {
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
+
+#quadrant-labels {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 380px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.q-label {
+  position: absolute;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  background: rgba(10, 10, 10, 0.8);
+  border-left: 2px solid #555;
+  backdrop-filter: blur(4px);
+}
+
+.q-tl {
+  top: 20px;
+  left: 20px;
+  border-left-color: #2d8cff;
+}
+
+.q-tr {
+  top: 20px;
+  left: calc(50% + 20px);
+  border-left-color: #ffdf3f;
+}
+
+.q-bl {
+  top: calc(50% + 20px);
+  left: 20px;
+  border-left-color: #ff3b4f;
+}
+
+.q-br {
+  top: calc(50% + 20px);
+  left: calc(50% + 20px);
+  border-left-color: #ffffff;
+}
+
+/* Separador visual en forma de cruz */
+#canvas-container::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(380px + (100% - 380px) / 2);
+  z-index: 5;
+  width: 1px;
+  content: '';
+  pointer-events: none;
+  background: #222;
+}
+
+#canvas-container::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 380px;
+  z-index: 5;
+  height: 1px;
+  content: '';
+  pointer-events: none;
+  background: #222;
+}

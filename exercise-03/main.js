@@ -28,9 +28,12 @@ camera.position.set(0, 0, 16);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-let geometry;
-let basePositions;
-let categories;
+let sysSonido;
+let sysLuz;
+let sysTactil;
+let baseSonido;
+let baseLuz;
+let baseTactil;
 let cronograma = [];
 let simulacionActiva = false;
 let tiempoActualMinutos = 8 * 60;
