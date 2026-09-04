@@ -1,0 +1,78 @@
+﻿<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estrategias de Contenci&oacute;n</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="quadrant-labels">
+      <div class="q-label q-tl">SOBRECARGA SONORA (dB)</div>
+      <div class="q-label q-tr">SOBRECARGA LUM&Iacute;NICA (Lux)</div>
+      <div class="q-label q-bl">VIBRACI&Oacute;N T&Aacute;CTIL (mm/s&sup2;)</div>
+      <div class="q-label q-br">ENTORNO COMBINADO</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <aside class="controls-panel">
+      <div class="project-header">
+        <h1 class="project-title">
+          M&Oacute;DULO DE CONTENCI&Oacute;N SENSORIAL<br />
+          <span>Artefacto Computacional</span>
+        </h1>
+      </div>
+
+      <section class="panel-section clock-section">
+        <h4>JORNADA ESCOLAR</h4>
+        <div class="clock-display">
+          <span id="reloj-hora">08:00</span>
+        </div>
+        <p id="reloj-actividad" class="activity-text">Llegada y Saludo</p>
+        <div class="action-buttons">
+          <button id="btn-play-simulacion" class="btn-primary">Iniciar</button>
+          <button id="btn-reset-simulacion" class="btn-secondary">Reiniciar</button>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <h2>PAR&Aacute;METROS DE SOBRECARGA AMBIENTAL</h2>
+
+        <div class="control-block">
+          <label for="slider-sonido">Sonido: <span id="val-sonido">40</span> dB</label>
+          <input id="slider-sonido" type="range" min="30" max="90" value="40" />
+        </div>
+
+        <div class="control-block">
+          <label for="slider-luz">Luz: <span id="val-luz">300</span> Lux</label>
+          <input id="slider-luz" type="range" min="100" max="1000" value="300" />
+        </div>
+
+        <div class="control-block">
+          <label for="slider-tactil">Vibraci&oacute;n T&aacute;ctil: <span id="val-tactil">0.0</span> mm/s&sup2;</label>
+          <input id="slider-tactil" type="range" min="0" max="10" step="0.1" value="0.0" />
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <h2>REGLAS DE REPRESENTACI&Oacute;N</h2>
+        <ul class="color-legend">
+          <li>Sonido &rarr; Azul (Acústica)</li>
+          <li>Luz &rarr; Amarillo (Lumínica)</li>
+          <li>T&aacute;ctil &rarr; Rojo (Vibracional)</li>
+        </ul>
+      </section>
+    </aside>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
